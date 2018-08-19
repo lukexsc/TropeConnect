@@ -45,7 +45,7 @@ namespace TropeConnect
             char[] delimiterChars = { ' ', ',', '\t', '\n' };
             links = textInput.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
 
-            // Show Loading
+            // Disable App
             inputTextBox.IsEnabled = false;
             analyzeButton.IsEnabled = false;
 
@@ -60,18 +60,23 @@ namespace TropeConnect
                         loadingText.Text = "Reading " + url;
                     });
 
+                    // Add Links to current page list
                     try
                     {
-                        // Add Links to current page list
-                        currentPageTropes.Clear();
+                        currentPageTropes.Clear(); // Clear page-specific tropes
+
+                        // Make HTTP Request
                         HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
                         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                         StreamReader sr = new StreamReader(response.GetResponseStream());
                         HtmlDocument doc = new HtmlDocument();
                         doc.Load(sr);
+
+                        // Get Links on the Page
                         var aTags = doc.DocumentNode.SelectNodes("//div[contains(@class, 'page-content')]//a[contains(@class, 'twikilink')]");
                         if (aTags != null)
                         {
+                            // Get references to other TVTropes pages from links and Add them to the Current List
                             foreach (var aTag in aTags)
                             {
                                 string link = aTag.Attributes["href"].Value;
@@ -79,9 +84,9 @@ namespace TropeConnect
                                     currentPageTropes.Add(link);
                             }
                         }
-                        sr.Close();
+                        sr.Close(); // close connection
 
-                        // Add to dictionary
+                        // Add Tropes to Dictionary
                         foreach (string trope in currentPageTropes)
                         {
                             if (!tropes.ContainsKey(trope)) // add new trope
@@ -92,16 +97,17 @@ namespace TropeConnect
                     }
                     catch (Exception ex)
                     {
-                        // Had Error, do nothing
+                        // error, do nothing
                     }
                 }
-
-                // Hide Loading
+                
+                // Aggregate Results
                 this.Dispatcher.Invoke(() =>
                 {
                     // Sort Tropes by number in common
                     var sortedDict = from entry in tropes orderby entry.Value descending select entry;
 
+                    // Output List of Tropes, Grouped by Number of Repetitions
                     string outputText = "";
                     int currentCount = -1;
                     foreach (KeyValuePair<string, int> trope in sortedDict)
@@ -116,10 +122,12 @@ namespace TropeConnect
                         outputText += "\n" + trope.Key;
                     }
 
+                    // Hide Loading and Enable App
                     inputTextBox.IsEnabled = true;
                     loadingText.Text = "";
                     analyzeButton.IsEnabled = true;
 
+                    // Create Output Window
                     OutputWindow outputWindow = new OutputWindow(outputText);
                     outputWindow.Show();
                 });
