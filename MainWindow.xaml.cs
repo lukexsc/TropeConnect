@@ -73,7 +73,7 @@ namespace TropeConnect
                         doc.Load(sr);
 
                         // Get Links on the Page
-                        var aTags = doc.DocumentNode.SelectNodes("//div[contains(@class, 'page-content')]//a[contains(@class, 'twikilink')]");
+                        var aTags = doc.DocumentNode.SelectNodes("//div[contains(@class, 'article-content')]//a[contains(@class, 'twikilink')]");
                         if (aTags != null)
                         {
                             // Get references to other TVTropes pages from links and Add them to the Current List
